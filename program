@@ -1,0 +1,49 @@
+from transformers import pipeline
+
+model_name = "google/flan-t5-base"
+chatbot = pipeline("text2text-generation", model=model_name)
+
+VALID_ROLES = ["Student", "Developer", "Teacher"]
+
+def construct_prompt(role, user_input):
+    return f"As a {role}, provide a concise and accurate answer to: {user_input}"
+
+def validate_role(role):
+    return role in VALID_ROLES
+
+def main():
+    print("Welcome to the chat bot")
+    print("Available roles:", ", ".join(VALID_ROLES))
+
+    while True:
+        role = input("\nChoose your role (Student/Developer/Teacher) or 'quit' to exit: ").strip()
+
+        if role.lower() == 'quit':
+            print("Goodbye!")
+            break
+
+        if not validate_role(role):
+            print(f"Error: Invalid role. Please choose from {', '.join(VALID_ROLES)}.")
+            continue
+
+        user_input = input("Ask me anything: ").strip()
+
+        if not user_input:
+            print("Error: Please provide a question.")
+            continue
+
+        prompt = construct_prompt(role, user_input)
+
+        try:
+            response = chatbot(prompt, max_length=100, num_return_sequences=1)
+            print("\nChatbot Response:", response[0]['generated_text'])
+        except Exception as e:
+            print("Error generating response:", str(e))
+
+        continue_chat = input("\nDo you want to ask another question? (yes/no): ").strip().lower()
+        if continue_chat != 'yes':
+            print("Goodbye!")
+            break
+
+if __name__ == "__main__":
+    main()
